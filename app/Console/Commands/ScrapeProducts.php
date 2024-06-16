@@ -68,15 +68,18 @@ class ScrapeProducts extends Command
                         ? $productCrawler->filter('.ui-pdp-gallery__figure__image')->first()->attr('src')
                         : '';
 
-                    Product::create([
-                        'name' => $name,
-                        'price' => $price,
-                        'description' => $description,
-                        'image' => $imageUrl,
-                    ]);
+                    if (!Product::where('name', $name)->exists()) {
+                        Product::create([
+                            'name' => $name,
+                            'price' => $price,
+                            'description' => $description,
+                            'image' => $imageUrl,
+                        ]);
 
-                    $this->info("Scraped: $name");
-
+                        $this->info("Scraped and saved: $name");
+                    } else {
+                        $this->info("Product already exists: $name");
+                    }
                 } catch (\Exception $e) {
                     $this->error("Error scraping product: " . $e->getMessage());
                     continue;
