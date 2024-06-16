@@ -55,8 +55,10 @@ class ScrapeProducts extends Command
                 ? $productCrawler->filter('.ui-pdp-price--size-large .ui-pdp-price__second-line .andes-money-amount__fraction')->text()
                 : '';
 
+            $price = str_replace(['.', ','], ['', '.'], $price);
+
             $description = $productCrawler->filter('.ui-pdp-description__content')->count()
-                ? $productCrawler->filter('.ui-pdp-description__content')->text()
+                ? $productCrawler->filter('.ui-pdp-description__content')->html()
                 : '';
 
             $imageUrl = $productCrawler->filter('.ui-pdp-gallery__figure__image')->count()
