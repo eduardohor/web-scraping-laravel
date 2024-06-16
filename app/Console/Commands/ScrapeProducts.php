@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Product;
 use Goutte\Client;
 use Illuminate\Console\Command;
+use Symfony\Component\HttpClient\Exception\ClientException;
 
 class ScrapeProducts extends Command
 {
@@ -38,43 +39,58 @@ class ScrapeProducts extends Command
     public function handle()
     {
         $url = 'https://lista.mercadolivre.com.br/notebooks#D[A:notebooks]';
-        $crawler = $this->client->request('GET', $url);
 
-        $products = [];
+        try {
+            $crawler = $this->client->request('GET', $url);
 
-        $links = $crawler->filter('.ui-search-result__wrapper a')->extract(['href']);
+            $links = $crawler->filter('.ui-search-result__wrapper a')->extract(['href']);
 
-        foreach ($links as $link) {
+            foreach ($links as $link) {
 
-            $productCrawler = $this->client->request('GET', $link);
-            $name = $productCrawler->filter('.ui-pdp-title')->count()
-                ? $productCrawler->filter('.ui-pdp-title')->text()
-                : '';
+                try {
 
-            $price = $productCrawler->filter('.ui-pdp-price--size-large .ui-pdp-price__second-line .andes-money-amount__fraction')->count()
-                ? $productCrawler->filter('.ui-pdp-price--size-large .ui-pdp-price__second-line .andes-money-amount__fraction')->text()
-                : '';
+                    $productCrawler = $this->client->request('GET', $link);
+                    $name = $productCrawler->filter('.ui-pdp-title')->count()
+                        ? $productCrawler->filter('.ui-pdp-title')->text()
+                        : '';
 
-            $price = str_replace(['.', ','], ['', '.'], $price);
+                    $price = $productCrawler->filter('.ui-pdp-price--size-large .ui-pdp-price__second-line .andes-money-amount__fraction')->count()
+                        ? $productCrawler->filter('.ui-pdp-price--size-large .ui-pdp-price__second-line .andes-money-amount__fraction')->text()
+                        : '';
 
-            $description = $productCrawler->filter('.ui-pdp-description__content')->count()
-                ? $productCrawler->filter('.ui-pdp-description__content')->html()
-                : '';
+                    $price = str_replace(['.', ','], ['', '.'], $price);
 
-            $imageUrl = $productCrawler->filter('.ui-pdp-gallery__figure__image')->count()
-                ? $productCrawler->filter('.ui-pdp-gallery__figure__image')->first()->attr('src')
-                : '';
+                    $description = $productCrawler->filter('.ui-pdp-description__content')->count()
+                        ? $productCrawler->filter('.ui-pdp-description__content')->html()
+                        : '';
 
-            Product::create([
-                'name' => $name,
-                'price' => $price,
-                'description' => $description,
-                'image' => $imageUrl,
-            ]);
+                    $imageUrl = $productCrawler->filter('.ui-pdp-gallery__figure__image')->count()
+                        ? $productCrawler->filter('.ui-pdp-gallery__figure__image')->first()->attr('src')
+                        : '';
 
-            $this->info("Scraped: $name");
+                    Product::create([
+                        'name' => $name,
+                        'price' => $price,
+                        'description' => $description,
+                        'image' => $imageUrl,
+                    ]);
+
+                    $this->info("Scraped: $name");
+
+                } catch (\Exception $e) {
+                    $this->error("Error scraping product: " . $e->getMessage());
+                    continue;
+                }
+            }
+
+            $this->info('Scraping completed.');
+
+        } catch (ClientException $e) {
+            $this->error("HTTP Client Exception: " . $e->getMessage());
+        } catch (\Exception $e){
+            $this->error("General Exception: " . $e->getMessage());
         }
 
-        $this->info('Scraping completed.');
+
     }
 }

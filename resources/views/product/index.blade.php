@@ -29,9 +29,9 @@
         }
 
         .card-price {
-            font-size: 1.25rem; /* Tamanho do texto do preço */
-            font-weight: bold; /* Texto em negrito */
-            color: #007bff; /* Cor azul para o preço */
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #007bff;
         }
     </style>
 </head>
