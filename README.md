@@ -6,7 +6,7 @@
 - Laravel 9.19
 - Docker
 
-URL utilizada para extrair, informacoes de produtos https://lista.mercadolivre.com.br/notebooks#D[A:notebooks]
+URL utilizada para extrair informacoes de produtos https://lista.mercadolivre.com.br/notebooks#D[A:notebooks]
 ### Instalação (Com Docker)
 
 **Passo 1: Clonar o Repositório**
